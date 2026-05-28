@@ -8,6 +8,7 @@ import {useNavigate} from 'react-router-dom'
 import axios from 'axios'
 import {serverUrl} from '../App'
 import { setUserData } from '../redux/userSlice';
+import AuthModel from './AuthModel';
 
 const Navbar = () => {
   const { userData } = useSelector((state) => state.user)
@@ -15,6 +16,7 @@ const Navbar = () => {
   const [showUserPopup, setShowUserPopup] = useState(false)
   const navigate = useNavigate()
   const dispatch = useDispatch()
+  const [showAuth, setShowAuth] = useState(false)
 
   const handleLogout = async () => {
       try {
@@ -46,7 +48,12 @@ const Navbar = () => {
         <div className=' flex items-center gap-6 relative'>
 
           <div className=' relative'>
-            <button onClick={()=> {setShowCreditPopup
+            <button onClick={()=> {
+              if(!userData){
+                setShowAuth(true)
+                return
+              }
+            setShowCreditPopup
             (!showCreditPopup);
             setShowUserPopup(false)
           }}
@@ -65,7 +72,12 @@ const Navbar = () => {
           </div>
 
           <div className=' relative'>
-            <button onClick={() => {setShowUserPopup
+            <button onClick={() => {
+              if(!userData){
+                setShowAuth(true)
+                return
+              }
+            setShowUserPopup
             (!showUserPopup);
             setShowCreditPopup(false)
             }}
@@ -91,6 +103,8 @@ const Navbar = () => {
         </div>
 
       </motion.div>
+
+      {showAuth && <AuthModel onClose={() => setShowAuth(false)}/>}
       
     </div>
   )
