@@ -13,19 +13,29 @@ function App() {
   const dispatch = useDispatch()
 
   useEffect(() => {
+      const controller = new AbortController()
+      
       const getUser = async () => {
         try {
-          const result = await axios.get(serverUrl + "/api/user/current-user",{withCredentials:true})
+          const result = await axios.get(serverUrl + "/api/user/current-user", {
+            withCredentials: true,
+            signal: controller.signal
+          })
           dispatch(setUserData(result.data))
 
         } catch (error) {
-          console.log(error)
-          dispatch(setUserData(null))
+          if (error.name !== 'CanceledError') {
+            console.log(error)
+            dispatch(setUserData(null))
+          }
         }
       }
+      
       getUser()
+      
+      return () => controller.abort()
 
-  },[dispatch])
+  }, [dispatch])
 
   return (
     <Routes>

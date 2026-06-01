@@ -20,14 +20,19 @@ const Navbar = () => {
 
   const handleLogout = async () => {
       try {
-        await axios.get(serverUrl + "/api/auth/logout", {withCredentials:true})
+        const response = await axios.get(serverUrl + "/api/auth/logout", {withCredentials:true})
+        if (response.status === 200) {
+          dispatch(setUserData(null))
+          setShowCreditPopup(false)
+          setShowUserPopup(false)
+          navigate("/")
+        }
+      } catch (error) {
+        console.error("Logout failed:", error)
         dispatch(setUserData(null))
         setShowCreditPopup(false)
         setShowUserPopup(false)
         navigate("/")
-
-      } catch (error) {
-        console.log(error)
       }
   }
 
@@ -53,8 +58,7 @@ const Navbar = () => {
                 setShowAuth(true)
                 return
               }
-            setShowCreditPopup
-            (!showCreditPopup);
+            setShowCreditPopup(!showCreditPopup);
             setShowUserPopup(false)
           }}
              className=' flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full text-md hover:bg-gray-200 transition'>
@@ -77,8 +81,7 @@ const Navbar = () => {
                 setShowAuth(true)
                 return
               }
-            setShowUserPopup
-            (!showUserPopup);
+            setShowUserPopup(!showUserPopup);
             setShowCreditPopup(false)
             }}
             className=' w-9 h-9 bg-black text-white rounded-full flex items-center justify-center font-semibold'>
