@@ -13,7 +13,6 @@ const InterviewHistory = () => {
       const getMyInterviews = async () => {
         try {
           const result = await axios.get(serverUrl+"/api/interview/get-interview", {withCredentials:true})
-          console.log(result.data)
 
           setInterviews(result.data)
 
@@ -40,7 +39,9 @@ const InterviewHistory = () => {
             <h1 className='text-3xl font-bold text-gray-800 flex-nowrap'>
               Interview History 
             </h1>
-            <p className='text-gray-500 mt-2'></p>
+            <p className='text-gray-500 mt-2'>
+              Track your past interviews and performance reports
+            </p>
           </div>
 
         </div>
