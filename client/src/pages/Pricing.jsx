@@ -1,19 +1,25 @@
 import React, { useState } from 'react'
 import { FaArrowLeft, FaCheckCircle } from 'react-icons/fa'
 import { useNavigate } from 'react-router-dom'
-import { motion } from "motion/react";
+import { color, motion } from "motion/react";
+import axios from "axios"
+import { serverUrl } from '../App';
+import { useDispatch } from 'react-redux';
+import { setUserData } from '../redux/userSlice';
 
 
 const Pricing = () => {
   const navigate = useNavigate();
   const [selectedPlan, setSelectedPlan] = useState("free");
+  const [loadingPlan, setLoadingPlan] = useState(null);
+  const dispatch = useDispatch()
 
   const plans = [
     {
       id: "free",
       name: "Free",
       price: "₹0",
-      credits: 100,
+      credits: 200,
       description: "Perfect for beginners starting interview preparation.",
       features: [
         "100 AI Interview Credits",
@@ -27,7 +33,7 @@ const Pricing = () => {
       id: "basic",
       name: "Starter Pack",
       price: "₹100",
-      credits: 150,
+      credits: 200,
       description: "Great for focused practice and skill improvement.",
       features: [
         "150 AI Interview Credits",
@@ -40,7 +46,7 @@ const Pricing = () => {
       id: "pro",
       name: "Pro Pack",
       price: "₹500",
-      credits: 650,
+      credits: 1100,
       description: "Best value for serious job preparation.",
       features: [
         "650 AI Interview Credits",
@@ -50,7 +56,52 @@ const Pricing = () => {
       ],
       badge: "Best value"
     }
-  ]
+  ];
+
+  const handlePayment = async (plan) => {
+    try {
+      setLoadingPlan(plan.id)
+
+      const amount = 
+      plan.id === "basic" ? 100 :
+      plan.id === "pro" ? 500 : 0;
+
+      const result = await axios.post(serverUrl + "/api/payment/order", {
+        planId: plan.id,
+        amount: amount,
+        credits: plan.credits
+      }, {withCredentials:true})
+
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: result.data.amount,
+        currency: "INR",
+        name: "MockMate AI",
+        description: `${plan.name} - ${plan.credits} Credits`,
+        order_id: result.data.id,
+
+        handler: async function (response) {
+          const verifypay = await axios.post(serverUrl + "/api/payment/verify", response, {withCredentials:true});
+          dispatch(setUserData(verifypay.data.user))
+
+          alert("Payment Successful  🎉  Credits Added!")
+          navigate("/")
+        },
+        theme: {
+          color: "#0D94FB"
+        }
+      }
+
+      const rzp = new window.Razorpay(options)
+      rzp.open()
+
+      setLoadingPlan(null)      
+
+    } catch (error) {
+      console.log(error)
+      setLoadingPlan(null)
+    }
+  }
 
   return (
     <div className='min-h-screen bg-linear-to-br from-gray-50 to-emerald-50 py-16 px-6'>
@@ -139,12 +190,25 @@ const Pricing = () => {
               </div>
               
               {!plan.default &&
-                <button className= {`w-full mt-8 py-3 rounded-xl font-semibold transition ${
+                <button 
+                disabled={loadingPlan === plan.id}
+                onClick={(e) => {e.stopPropagation();
+                  if(!isSelected) {
+                    setSelectedPlan(plan.id)
+                  } else {
+                    handlePayment(plan)
+                  }
+                }}
+                className= {`w-full mt-8 py-3 rounded-xl font-semibold transition ${
                   isSelected 
                   ? "bg-emerald-600 text-white hover:opacity-90"
                   : "bg-gray-100 text-gray-700 hover:bg-emerald-50"
                 }`}>
-                  {isSelected ? "Proceed to Pay" : "Select Plan"}
+                  {loadingPlan === plan.id 
+                  ? "Processing..." 
+                  : isSelected 
+                  ? "Proceed to Pay" 
+                  : "Select Plan"}
                 </button> 
               }
             </motion.div>
